@@ -1,9 +1,11 @@
 require 'strscan'
+require 'pry'
+require 'pry-debugger'
 
 module MailExtract
   class Parser
-    attr_reader :body
-    
+    attr_reader :body, :results
+
     # Initialize a new MailExtract::Parser object
     #
     # text    - Email message body
@@ -19,42 +21,61 @@ module MailExtract
       @last_type = :text
       @type      = :text
       @options   = options
-      
+      @results   = { text: [], quote: [], signature: [] }
+
       parse
     end
-    
+
+    def text
+      @results[:text]
+    end
+    alias :text :body
+
+    def quote
+      @results[:quote]
+    end
+
+    def signature
+      @results[:signature]
+    end
+
     private
-    
+
     # Process email message body
     #
     def parse
       break_after_quote = @options[:only_head] || false
       scanner = StringScanner.new(@text)
-      
+
       # Process until message end
       while str = scanner.scan_until(/\n/)
         line = parse_line(str)
-        
+
         if break_after_quote
           break if line.quote? && line.subtype == :start
         end
       end
-      
+
       # Process the rest (if any)
       if !break_after_quote && @last_type != :quote
         if (last_line = scanner.rest.to_s).size > 0
           parse_line(last_line)
         end
       end
-      
-      @body = @lines.join("\n").strip
+
+      @results = @results.inject({}) do |hash, (key, value)|
+        hash[key] = value.join("\n").strip
+        hash
+      end
+
+      @body = @results[:text]
     end
-    
+
     # Process a single line
     #
     def parse_line(str)
       line = MailExtract::Line.new(str)
-      
+
       if line.quote?
         if @last_type == :text      ; @type = :quote     ; end
       elsif line.text?
@@ -66,7 +87,8 @@ module MailExtract
       end
       @last_type = line.type
       @lines << line.body.strip if @type == :text
-      
+      @results[@type] << line.body.strip
+
       line
     end
   end
