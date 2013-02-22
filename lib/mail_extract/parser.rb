@@ -57,7 +57,7 @@ module MailExtract
       end
 
       # Process the rest (if any)
-      if !break_after_quote && @last_type != :quote
+      if !break_after_quote
         if (last_line = scanner.rest.to_s).size > 0
           parse_line(last_line)
         end

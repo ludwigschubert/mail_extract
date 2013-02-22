@@ -7,6 +7,12 @@ describe 'MailExtract::Parser' do
     parser.quote.should == ''
   end
 
+  it 'parses an email with text after the quote' do
+    parser = parser_for_fixture('text_after_quote.txt')
+    parser.body.should == result_fixture('text_after_quote.txt')
+    parser.quote.should == quote_fixture('text_after_quote.txt')
+  end
+
   it 'parses an email with quotes' do
     parser = parser_for_fixture('simple_with_quotes.txt')
     parser.body.should == result_fixture('simple_with_quotes.txt')
