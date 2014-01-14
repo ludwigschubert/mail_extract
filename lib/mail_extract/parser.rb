@@ -1,6 +1,6 @@
 require 'strscan'
-require 'pry'
-require 'pry-debugger'
+# require 'pry'
+# require 'pry-debugger'
 
 module MailExtract
   class Parser
